@@ -1,0 +1,249 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block dynamic_title %}Verification Queue{% endblock %}
+
+{% block content %}
+<div class="vq-wrap">
+
+  <!-- ── Page Header ── -->
+  <div class="vq-header">
+    <div>
+      <h2 class="vq-title">🛡️ Verification Queue</h2>
+      <p class="vq-sub">Confirm student IDs to allow tool rentals.</p>
+    </div>
+    <span class="vq-badge">{{ unverified_users|length }} Pending</span>
+  </div>
+
+  <!-- ── Cards ── -->
+  <div class="vq-grid">
+    {% for user in unverified_users %}
+    <div class="vq-card">
+
+      <div class="vq-card-header">
+        <div class="vq-avatar">{{ user.username|slice:":1"|upper }}</div>
+        <div class="vq-card-info">
+          <span class="vq-username">{{ user.username }}</span>
+          <code class="vq-email">{{ user.email }}</code>
+        </div>
+      </div>
+
+      <div class="vq-id-preview">
+        {% if user.id_document %}
+    <img src="{{ user.id_document.url }}" alt="ID Document" style="max-height: 400px; border-radius: 8px;">
+{% else %}
+    <p>No document uploaded.</p>
+{% endif %}
+
+<form action="{% url 'approve_user' user.id %}" method="POST">
+    {% csrf_token %}
+    <button type="submit" class="button default">Approve User</button>
+</form>
+
+    </div>
+    {% empty %}
+    <div class="vq-empty">
+      <span class="vq-empty-icon">✅</span>
+      <h3>All caught up!</h3>
+      <p>All are verified. Check back later.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+
+<style>
+  .vq-wrap { max-width: 1200px; }
+
+  /* Header */
+  .vq-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .vq-title {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 .25rem;
+  }
+
+  .vq-sub {
+    color: var(--text-muted);
+    font-size: .9rem;
+    margin: 0;
+  }
+
+  .vq-badge {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+    border-radius: 2rem;
+    padding: .35rem 1rem;
+    font-size: .8rem;
+    font-weight: 700;
+    align-self: flex-start;
+    white-space: nowrap;
+  }
+
+  /* Grid */
+  .vq-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+  }
+
+  /* Card */
+  .vq-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: var(--transition);
+  }
+
+  .vq-card:hover { box-shadow: 0 8px 32px rgba(99,102,241,.12); border-color: #c7d2fe; }
+
+  /* Card header row */
+  .vq-card-header {
+    display: flex;
+    align-items: center;
+    gap: .85rem;
+    padding: 1.1rem 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .vq-avatar {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #818cf8);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .vq-card-info {
+    display: flex;
+    flex-direction: column;
+    gap: .2rem;
+    min-width: 0;
+  }
+
+  .vq-username {
+    font-size: .95rem;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .vq-email {
+    font-size: .75rem;
+    color: var(--text-muted);
+    background: var(--surface-alt);
+    border-radius: .3rem;
+    padding: .1rem .4rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ID image area */
+  .vq-id-preview {
+    background: var(--surface-alt);
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  .vq-id-preview img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    display: block;
+  }
+
+  .vq-no-id {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 2rem;
+  }
+
+  .vq-no-id span { font-size: 2rem; display: block; margin-bottom: .5rem; }
+  .vq-no-id p { font-size: .85rem; margin: 0; }
+
+  /* Actions */
+  .vq-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+    border-top: 1px solid var(--border);
+  }
+
+  .vq-btn {
+    padding: .75rem;
+    text-align: center;
+    font-size: .85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: var(--transition);
+    letter-spacing: .02em;
+  }
+
+  .vq-btn-approve {
+    color: #065f46;
+    background: #d1fae5;
+  }
+
+  .vq-btn-approve:hover { background: #10b981; color: #fff; }
+
+  .vq-btn-reject {
+    color: #991b1b;
+    background: #fee2e2;
+    border-left: 1px solid var(--border);
+  }
+
+  .vq-btn-reject:hover { background: #ef4444; color: #fff; }
+
+  /* Empty state */
+  .vq-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 4rem 2rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+
+  .vq-empty-icon { font-size: 3rem; display: block; margin-bottom: 1rem; }
+
+  .vq-empty h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text);
+    margin: 0 0 .5rem;
+  }
+
+  .vq-empty p { color: var(--text-muted); font-size: .9rem; margin: 0; }
+
+  @media (max-width: 640px) {
+    .vq-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}

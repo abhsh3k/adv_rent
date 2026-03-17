@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% block title %}My Profile — ToolX{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width: 600px;">
+
+        <div class="mb-5 text-center">
+        <h1 style="font-family: var(--font-display); font-size: 2rem;">Account Settings</h1>
+        <p class="text-muted">Manage your personal information and notifications.</p>
+    </div>
+    <div class="d-flex align-items-center gap-3 mb-4">
+        {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" style="width:56px; height:56px; border-radius:50%; object-fit:cover;">
+        {% else %}
+        <div style="width:56px; height:56px; background:var(--tx-black); color:var(--tx-accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:800; font-size:1.4rem;">
+            {{ user.first_name|first|upper|default:user.username|first|upper }}
+        </div>
+        {% endif %}
+        <div>
+            <div style="font-family:var(--font-display); font-weight:800; font-size:1.3rem; letter-spacing:-0.02em;">
+                {{ user.get_full_name|default:user.username }}
+            </div>
+            <div style="font-size:0.82rem; color:var(--tx-muted);">
+                @{{ user.username }} · {{ user.get_role_display|default:user.role }}
+                {% if user.is_verified %}
+                <span style="color:#1a7a3c; font-weight:600; margin-left:0.4rem;">✓ Verified</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+
+
+    <div style="background:var(--tx-card); border:1.5px solid var(--tx-border); border-radius:4px; padding:1.25rem 1.5rem; margin-bottom:2rem;">
+        <h6 style="font-family:var(--font-display); font-size:0.75rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--tx-muted); margin-bottom:1rem;">Verification status</h6>
+
+        <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid var(--tx-border);">
+            <div>
+                <div style="font-weight:600; font-size:0.88rem;">Phone Number</div>
+                <div style="font-size:0.78rem; color:var(--tx-muted);">{{ user.phone|default:"Not provided" }}</div>
+            </div>
+            {% if user.phone_verified %}
+            <span style="background:#e8fff0; color:#1a7a3c; border:1px solid #b6e8c8; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">✓ Verified</span>
+            {% else %}
+            <span style="background:#fff8e1; color:#8a6200; border:1px solid #ffd54f; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">Pending</span>
+            {% endif %}
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center py-3" style="border-bottom:1px solid var(--tx-border);">
+            <div>
+                <div style="font-weight:600; font-size:0.88rem;">Email Address</div>
+                <div style="font-size:0.78rem; color:var(--tx-muted);">{{ user.email }}</div>
+            </div>
+            {% if user.email_verified %}
+            <span style="background:#e8fff0; color:#1a7a3c; border:1px solid #b6e8c8; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">✓ Verified</span>
+            {% else %}
+            <span style="background:#fff8e1; color:#8a6200; border:1px solid #ffd54f; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">Pending</span>
+            {% endif %}
+        </div>
+         <!-- ID verification -->
+  <div class="d-flex justify-content-between align-items-center py-2" style="border-bottom:1px solid var(--tx-border);">
+    <div>
+      <div style="font-weight:600; font-size:0.88rem;">Identity (ID document)</div>
+      <div style="font-size:0.78rem; color:var(--tx-muted);">
+        {% if user.is_verified %}
+          Approved by admin
+        {% elif user.id_document %}
+          Document uploaded — under review
+        {% else %}
+          Not submitted
+        {% endif %}
+      </div>
+    </div>
+    {% if user.is_verified %}
+    <span style="background:#e8fff0; color:#1a7a3c; border:1px solid #b6e8c8; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">✓ Verified</span>
+    {% elif user.id_document %}
+    <span style="background:#e3f2fd; color:#0d47a1; border:1px solid #90caf9; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">⏳ Under review</span>
+    {% else %}
+    <span style="background:#fce4ec; color:#880e4f; border:1px solid #f48fb1; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">Not submitted</span>
+    {% endif %}
+  </div>
+
+        <div class="d-flex justify-content-between align-items-center py-2">
+            <div>
+                <div style="font-weight:600; font-size:0.88rem;">Telegram</div>
+                <div style="font-size:0.78rem; color:var(--tx-muted);">
+                    {% if user.telegram_chat_id %}Linked — notifications active{% else %}Not linked{% endif %}
+                </div>
+            </div>
+            {% if user.telegram_chat_id %}
+            <span style="background:#e8fff0; color:#1a7a3c; border:1px solid #b6e8c8; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">✓ Linked</span>
+            {% else %}
+            <span style="background:#fff8e1; color:#8a6200; border:1px solid #ffd54f; font-size:0.72rem; font-weight:600; padding:0.2rem 0.65rem; border-radius:2px;">Not linked</span>
+            {% endif %}
+        </div>
+    </div>
+
+  <!-- ID verification action -->
+{% if not user.is_verified %}
+<div style="background:{% if user.id_document %}#e3f2fd{% else %}#fff8e1{% endif %}; border:1.5px solid {% if user.id_document %}#90caf9{% else %}#ffd54f{% endif %}; border-radius:4px; padding:1rem 1.25rem; margin-bottom:2rem;">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      {% if user.id_document %}
+      <div style="font-weight:600; font-size:0.88rem;">ID under review</div>
+      <div style="font-size:0.78rem; color:var(--tx-muted);">We'll notify you once your identity is verified by our team.</div>
+      {% else %}
+      <div style="font-weight:600; font-size:0.88rem;">Verify your identity to start renting</div>
+      <div style="font-size:0.78rem; color:var(--tx-muted);">Upload a government-issued ID. Required before renting any tool.</div>
+      {% endif %}
+    </div>
+    {% if not user.id_document %}
+    <a href="{% url 'verify_id' %}" class="btn btn-tx-accent btn-sm">Upload ID →</a>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+    <div class="card border-0 shadow-sm p-4 mb-4" style="background: #ffffff; border-radius: 12px;">
+        <h5 class="mb-4" style="font-weight: 700;">Personal Information</h5>
+        
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label class="form-label small fw-bold text-uppercase">First name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ user.first_name }}" style="padding: 0.75rem;">
+                </div>
+                <div class="col-6">
+                    <label class="form-label small fw-bold text-uppercase">Last name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ user.last_name }}" style="padding: 0.75rem;">
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="auth-label">Email</label>
+                <div class="d-flex gap-2">
+                    <input type="text" class="auth-input" value="{{ user.email|default:'Not set' }}" readonly style="background:#f7f5f0; color:var(--tx-muted); flex:1;">
+                    <button type="button" class="btn btn-tx-outline btn-sm" onclick="showChangeModal('email')" style="white-space:nowrap;">
+                        {% if user.email %}Change{% else %}Add{% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="auth-label">Phone number</label>
+                <div class="d-flex gap-2">
+                    <input type="text" class="auth-input" value="{{ user.phone|default:'Not set' }}" readonly style="background:#f7f5f0; color:var(--tx-muted); flex:1;">
+                    <button type="button" class="btn btn-tx-outline btn-sm" onclick="showChangeModal('phone')" style="white-space:nowrap;">
+                        {% if user.phone %}Change{% else %}Add{% endif %}
+                    </button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <label class="form-label small fw-bold text-uppercase">Profile Photo</label>
+                <div class="d-flex align-items-center gap-3">
+                    {% if user.avatar %}
+                        <img src="{{ user.avatar.url }}" style="width: 50px; height: 50px; border-radius: 50%; object-fit: cover;">
+                    {% endif %}
+                    <input type="file" name="avatar" class="form-control form-control-sm" accept="image/*">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-dark w-100 py-2 fw-bold" style="border-radius: 8px;">
+                Save Profile Changes
+            </button>
+        </form>
+    </div>
+
+    <div class="card border-0 shadow-sm p-4" style="background: #f8f9fa; border-radius: 12px; border-left: 5px solid #0088cc !important;">
+        <div class="d-flex align-items-center mb-3">
+            <div style="background: #0088cc; color: white; padding: 8px; border-radius: 8px; margin-right: 12px;">
+                <i class="bi bi-telegram"></i> <span style="font-weight: bold;">Telegram</span>
+            </div>
+            <h5 class="m-0" style="font-weight: 700;">Notifications</h5>
+        </div>
+
+        {% if user.telegram_chat_id %}
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="badge bg-success mb-1">Status: Linked</span>
+                    <p class="small text-muted m-0">You are receiving real-time rental updates.</p>
+                </div>
+                <form method="post" action="{% url 'unlink_telegram' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm px-3">Unlink</button>
+                </form>
+            </div>
+        {% else %}
+            <p class="small text-muted mb-3">
+                Link your account to receive instant notifications for rental requests and messages directly on Telegram.
+            </p>
+            
+            <form method="post" action="{% url 'link_telegram' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-primary btn-sm fw-bold">
+                    Generate Secure Link →
+                </button>
+            </form>
+
+            {% if telegram_link_url %}
+                <div class="mt-3 p-3 bg-white border rounded">
+                    <p class="small fw-bold mb-2">Instructions:</p>
+                    <ol class="small text-muted ps-3 mb-2">
+                        <li>Click the link below to open our bot.</li>
+                        <li>Press <strong>'Start'</strong> in the Telegram app.</li>
+                    </ol>
+                    <a href="{{ telegram_link_url }}" target="_blank" class="text-primary fw-bold text-break" style="font-size: 0.85rem;">
+                        {{ telegram_link_url }}
+                    </a>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="mt-4 text-center">
+        <a href="{% url 'home' %}" class="text-decoration-none text-muted small">← Back to Home</a>
+    </div>
+</div>
+
+<div id="change-modal" style="display:none; background:rgba(0,0,0,0.5); position:fixed; inset:0; z-index:2000; align-items:center; justify-content:center;">
+  <div style="background:var(--tx-white); border-radius:4px; padding:2rem; width:100%; max-width:420px; margin:1rem;">
+    <h5 style="font-family:var(--font-display); font-weight:700; margin-bottom:1.25rem;" id="modal-title">Change email</h5>
+    
+    <form method="post" action="{% url 'change_contact' %}">
+      {% csrf_token %}
+      <input type="hidden" name="contact_type" id="modal-contact-type" value="email">
+
+      <div class="mb-3">
+        <label class="auth-label" id="modal-contact-label">New email</label>
+        
+        <div class="d-flex gap-2">
+          <div id="modal-country-code-container" style="display: none;">
+            <select name="country_code" class="auth-input" style="width: 110px; flex-shrink: 0; background-color: #fff; padding-right: 5px;">
+              <option value="+91" selected>🇮🇳 +91</option>
+              <option value="+1">🇺🇸 +1</option>
+              <option value="+44">🇬🇧 +44</option>
+              <option value="+971">🇦🇪 +971</option>
+            </select>
+          </div>
+
+          <input type="text" name="new_contact" id="modal-contact-input"
+            class="auth-input" placeholder="you@example.com" required style="flex: 1;">
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label class="auth-label">Current password</label>
+        <input type="password" name="password" class="auth-input"
+          placeholder="Enter your password to confirm" required>
+      </div>
+
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-tx-accent flex-grow-1">Send verification code →</button>
+        <button type="button" class="btn btn-tx-outline" onclick="hideChangeModal()">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+
+function showChangeModal(type) {
+  const modal = document.getElementById('change-modal');
+  const title = document.getElementById('modal-title');
+  const label = document.getElementById('modal-contact-label');
+  const input = document.getElementById('modal-contact-input');
+  const contactType = document.getElementById('modal-contact-type');
+  const countryCodeBox = document.getElementById('modal-country-code-container');
+
+  if (type === 'email') {
+    title.textContent = 'Change email';
+    label.textContent = 'New email address';
+    input.type = 'email';
+    input.placeholder = 'you@example.com';
+    input.inputMode = 'email';
+    countryCodeBox.style.display = 'none'; // Hide for email
+  } else {
+    title.textContent = 'Change phone number';
+    label.textContent = 'New phone number';
+    input.type = 'text';
+    input.placeholder = '9999999999';
+    input.inputMode = 'numeric'; // Opens number pad on mobile
+    countryCodeBox.style.display = 'block'; // Show for phone
+  }
+
+  contactType.value = type;
+  modal.style.display = 'flex';
+  input.focus();
+}
+
+function hideChangeModal() {
+  document.getElementById('change-modal').style.display = 'none';
+}
+
+document.getElementById('change-modal').addEventListener('click', function(e) {
+  if (e.target === this) hideChangeModal();
+});
+</script>
+{% endblock %}

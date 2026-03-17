@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Browse Tools — ToolX{% endblock %}
+{% block nav_tools %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .filter-sidebar {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    padding: 1.5rem;
+    position: sticky;
+    top: 80px;
+  }
+  .filter-sidebar h6 {
+    font-family: var(--font-display);
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tx-muted);
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--tx-border);
+  }
+  .filter-check .form-check-label {
+    font-size: 0.88rem;
+    cursor: pointer;
+  }
+  .filter-check .form-check-input:checked {
+    background-color: var(--tx-black);
+    border-color: var(--tx-black);
+  }
+  .filter-check .form-check-input:focus { box-shadow: none; }
+
+  .sort-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem 1rem;
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    margin-bottom: 1.25rem;
+  }
+  .sort-bar .result-count {
+    font-size: 0.85rem;
+    color: var(--tx-muted);
+  }
+  .sort-bar select {
+    border: 1px solid var(--tx-border);
+    border-radius: 2px;
+    font-size: 0.85rem;
+    padding: 0.3rem 0.7rem;
+    color: var(--tx-black);
+    background: transparent;
+    cursor: pointer;
+  }
+  .sort-bar select:focus { outline: none; box-shadow: none; }
+
+  .active-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--tx-black);
+    color: var(--tx-white);
+    font-size: 0.78rem;
+    font-weight: 500;
+    padding: 0.25rem 0.65rem;
+    border-radius: 2px;
+    text-decoration: none;
+  }
+  .active-filter-tag:hover { background: #333; color: var(--tx-white); }
+
+  .page-header-bar {
+    background: var(--tx-black);
+    padding: 2.5rem 0;
+  }
+  .page-header-bar h1 {
+    color: var(--tx-white);
+    font-size: clamp(1.8rem, 3vw, 2.5rem);
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .page-header-bar .search-wrap {
+    max-width: 440px;
+  }
+  .page-header-bar input[type=text] {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.15);
+    border-right: none;
+    color: var(--tx-white);
+    border-radius: 2px 0 0 2px;
+    padding: 0.55rem 1rem;
+    font-size: 0.9rem;
+    flex: 1;
+  }
+  .page-header-bar input[type=text]::placeholder { color: rgba(255,255,255,0.35); }
+  .page-header-bar input[type=text]:focus { outline: none; box-shadow: none; border-color: var(--tx-accent); }
+  .page-header-bar button[type=submit] {
+    background: var(--tx-accent);
+    border: none;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0 2px 2px 0;
+    font-weight: 700;
+    color: var(--tx-black);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .page-header-bar button[type=submit]:hover { opacity: 0.85; }
+
+  /* Pagination */
+  .tx-pagination .page-link {
+    border-radius: 2px;
+    border: 1.5px solid var(--tx-border);
+    color: var(--tx-black);
+    font-size: 0.85rem;
+    padding: 0.4rem 0.8rem;
+    margin: 0 2px;
+  }
+  .tx-pagination .page-item.active .page-link {
+    background: var(--tx-black);
+    border-color: var(--tx-black);
+    color: var(--tx-white);
+  }
+  .tx-pagination .page-link:focus { box-shadow: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Page header -->
+<div class="page-header-bar">
+  <div class="container">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
+      <h1>Browse Tools</h1>
+      <form method="get" action="{% url 'tool_list' %}" class="search-wrap d-flex w-100" style="max-width:400px;">
+        {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
+        {% if request.GET.sort %}<input type="hidden" name="sort" value="{{ request.GET.sort }}">{% endif %}
+        <input type="text" name="q" placeholder="Search tools..." value="{{ request.GET.q }}">
+        <button type="submit">Search</button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="container py-4">
+  <div class="row g-4">
+
+    <!-- Sidebar filters -->
+    <div class="col-lg-3">
+      <form method="get" action="{% url 'tool_list' %}" id="filter-form">
+        {% if request.GET.q %}<input type="hidden" name="q" value="{{ request.GET.q }}">{% endif %}
+
+        <div class="filter-sidebar">
+          <!-- Category -->
+          <h6>Category</h6>
+          <div class="filter-check mb-3">
+            {% for category in categories %}
+ <div class="form-check mb-1">
+   <input class="form-check-input" type="radio" name="category" id="cat_{{ category.id }}"
+     value="{{ category.slug }}" {% if request.GET.category == category.slug %}checked{% endif %}
+     onchange="document.getElementById('filter-form').submit()">
+   <label class="form-check-label" for="cat_{{ category.id }}">{{ category.name }}</label>
+ </div>
+{% endfor %}
+            {% if request.GET.category %}
+            <a href="{% url 'tool_list' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}"
+               class="d-block mt-1" style="font-size:0.78rem; color:var(--tx-muted);">✕ Clear</a>
+            {% endif %}
+          </div>
+
+          <!-- Availability -->
+          <h6>Availability</h6>
+          <div class="filter-check mb-3">
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="radio" name="available" id="avail_all"
+                value="" {% if not request.GET.available %}checked{% endif %}
+                onchange="document.getElementById('filter-form').submit()">
+              <label class="form-check-label" for="avail_all">All tools</label>
+            </div>
+            <div class="form-check mb-1">
+              <input class="form-check-input" type="radio" name="available" id="avail_yes"
+                value="yes" {% if request.GET.available == 'yes' %}checked{% endif %}
+                onchange="document.getElementById('filter-form').submit()">
+              <label class="form-check-label" for="avail_yes">Available now</label>
+            </div>
+          </div>
+
+          <!-- Sort -->
+          <h6>Sort by</h6>
+
+          <button type="button" class="btn btn-tx-outline btn-sm w-100 mb-2" onclick="sortByNearest()">
+  📍 Nearest first
+</button>
+          <select name="sort" class="form-select form-select-sm mb-1" style="border-radius:2px;"
+            onchange="document.getElementById('filter-form').submit()">
+            <option value="newest" {% if request.GET.sort == 'newest' or not request.GET.sort %}selected{% endif %}>Newest first</option>
+            <option value="price_asc" {% if request.GET.sort == 'price_asc' %}selected{% endif %}>Price: low to high</option>
+            <option value="price_desc" {% if request.GET.sort == 'price_desc' %}selected{% endif %}>Price: high to low</option>
+          </select>
+
+          <button type="submit" class="btn btn-tx-primary w-100 mt-3 btn-sm">Apply filters</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Tool grid -->
+    <div class="col-lg-9">
+
+      <!-- Active filters + count -->
+      <div class="sort-bar">
+        <span class="result-count">
+          <strong>{{ tools.paginator.count|default:tools|length }}</strong> tools found
+          {% if request.GET.q %} for "{{ request.GET.q }}"{% endif %}
+        </span>
+        <div class="d-flex gap-2 align-items-center flex-wrap">
+          {% if request.GET.category %}
+            <a href="{% url 'tool_list' %}{% if request.GET.q %}?q={{ request.GET.q }}{% endif %}" class="active-filter-tag">{{ request.GET.category }} ✕</a>
+          {% endif %}
+          {% if request.GET.available == 'yes' %}
+            <a href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}" class="active-filter-tag">Available only ✕</a>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="row g-3">
+        {% for tool in tools %}
+        <div class="col-sm-6 col-xl-4">
+          <div class="tool-card h-100">
+            <div class="card-img-wrap">
+              {% if tool.image %}
+                <img src="{{ tool.image.url }}" alt="{{ tool.name }}">
+              {% else %}
+                <div style="font-size:3rem; color:#aaa;">🔧</div>
+              {% endif %}
+            </div>
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <div class="tool-name">{{ tool.name }}</div>
+                {% if tool.is_available %}
+                  <span class="badge-avail">Available</span>
+                {% else %}
+                  <span class="badge-rented">Rented</span>
+                {% endif %}
+              </div>
+              <div class="tool-meta">{{ tool.get_category_display }} · {{ tool.owner.get_full_name|default:tool.owner.username }}</div>
+              {% if tool.description %}
+              <p style="font-size:0.82rem; color:var(--tx-muted); margin:0.4rem 0 0.6rem; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">{{ tool.description }}</p>
+              {% endif %}
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <div class="tool-price">₹{{ tool.daily_rate }} <span>/ day</span></div>
+                <a href="{% url 'tool_detail' tool.pk %}" class="btn btn-tx-primary btn-sm">View →</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+          <div style="font-size:3rem; margin-bottom:1rem;">🔍</div>
+          <h5 style="font-family:var(--font-display);">No tools found</h5>
+          <p style="color:var(--tx-muted); font-size:0.9rem;">Try a different search or category.</p>
+          <a href="{% url 'tool_list' %}" class="btn btn-tx-outline btn-sm">Clear filters</a>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Pagination -->
+      {% if tools.has_other_pages %}
+      <div class="d-flex justify-content-center mt-5">
+        <nav>
+          <ul class="pagination tx-pagination mb-0">
+            {% if tools.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ tools.previous_page_number }}&{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}">← Prev</a>
+            </li>
+            {% endif %}
+            {% for num in tools.paginator.page_range %}
+            <li class="page-item {% if tools.number == num %}active{% endif %}">
+              <a class="page-link" href="?page={{ num }}&{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if tools.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ tools.next_page_number }}&{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}{% if request.GET.category %}category={{ request.GET.category }}&{% endif %}{% if request.GET.sort %}sort={{ request.GET.sort }}{% endif %}">Next →</a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+function sortByNearest() {
+  navigator.geolocation.getCurrentPosition(pos => {
+    const url = new URL(window.location.href);
+    url.searchParams.set('lat', pos.coords.latitude);
+    url.searchParams.set('lng', pos.coords.longitude);
+    url.searchParams.set('sort', 'nearest');
+    window.location.href = url.toString();
+  });
+}
+</script>
+
+{% endblock %}

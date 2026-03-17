@@ -1,0 +1,27 @@
+# Python bytecode (compiled files)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment variables (Crucial for security!)
+.env
+db.sqlite3
+
+# Virtual Environments
+venv/
+env/
+.venv/
+ENV/
+
+# Media and Static files (Usually managed separately in production)
+/media/
+/staticfiles/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+
+# OS generated files
+.DS_Store
+Thumbs.db

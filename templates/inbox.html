@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Inbox — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .inbox-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid var(--tx-border);
+    text-decoration: none;
+    color: var(--tx-black);
+    transition: background 0.15s;
+  }
+  .inbox-item:hover { background: #f7f5f0; color: var(--tx-black); }
+  .inbox-item.unread { background: #fafde8; }
+  .inbox-avatar {
+    width: 44px;
+    height: 44px;
+    background: var(--tx-black);
+    color: var(--tx-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .inbox-name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+  .inbox-preview {
+    font-size: 0.82rem;
+    color: var(--tx-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 320px;
+  }
+  .inbox-meta {
+    font-size: 0.75rem;
+    color: var(--tx-muted);
+    white-space: nowrap;
+  }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--tx-accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4" style="max-width:700px;">
+
+  <h1 style="font-family:var(--font-display); font-size:1.8rem; letter-spacing:-0.03em; margin-bottom:1.5rem;">
+    Inbox
+  </h1>
+
+  <div style="background:var(--tx-card); border:1.5px solid var(--tx-border); border-radius:4px; overflow:hidden;">
+    {% for item in inbox_items %}
+    <a href="{% url 'rental_thread' item.rental.pk %}" 
+       class="inbox-item {% if item.unread %}unread{% endif %}">
+
+      <div class="inbox-avatar">
+        {{ item.other_person.first_name|first|upper|default:"?" }}
+      </div>
+
+      <div class="flex-grow-1" style="min-width:0;">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="inbox-name">
+            {{ item.other_person.get_full_name|default:item.other_person.username }}
+          </div>
+          <div class="inbox-meta">
+            {% if item.last_msg %}
+              {{ item.last_msg.created_at|date:"d M, H:i" }}
+            {% endif %}
+          </div>
+        </div>
+        <div class="d-flex justify-content-between align-items-center mt-1">
+          <div class="inbox-preview">
+            <span style="color:var(--tx-muted); font-size:0.75rem;">{{ item.rental.tool.name }} · </span>
+            {% if item.last_msg %}
+              {{ item.last_msg.body|truncatechars:60 }}
+            {% else %}
+              <em>No messages yet</em>
+            {% endif %}
+          </div>
+          {% if item.unread %}
+          <div class="unread-dot ms-2"></div>
+          {% endif %}
+        </div>
+      </div>
+
+    </a>
+    {% empty %}
+    <div style="text-align:center; padding:3rem 1rem; color:var(--tx-muted);">
+      <div style="font-size:2.5rem; margin-bottom:0.75rem;">💬</div>
+      <p style="font-size:0.88rem;">No conversations yet.<br>Rent a tool or get a rental request to start messaging.</p>
+      <a href="{% url 'tool_list' %}" class="btn btn-tx-primary btn-sm mt-2">Browse tools →</a>
+    </div>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

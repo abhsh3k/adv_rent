@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}Message Thread — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .thread-wrap {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+  .thread-header {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .thread-tool-name {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .thread-meta { font-size: 0.8rem; color: var(--tx-muted); }
+
+  .messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    min-height: 200px;
+  }
+  .msg-bubble {
+    max-width: 75%;
+    padding: 0.7rem 1rem;
+    border-radius: 4px;
+    font-size: 0.88rem;
+    line-height: 1.5;
+  }
+  .msg-bubble.mine {
+    align-self: flex-end;
+    background: var(--tx-black);
+    color: var(--tx-white);
+  }
+  .msg-bubble.theirs {
+    align-self: flex-start;
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    color: var(--tx-black);
+  }
+  .msg-sender {
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+    opacity: 0.6;
+  }
+  .msg-time {
+    font-size: 0.7rem;
+    opacity: 0.5;
+    margin-top: 0.25rem;
+    text-align: right;
+  }
+  .msg-input-wrap {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  .msg-input {
+    width: 100%;
+    border: none;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    font-family: var(--font-body);
+    background: transparent;
+    color: var(--tx-black);
+    resize: none;
+  }
+  .msg-input:focus { outline: none; }
+  .msg-input-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--tx-border);
+  }
+  .msg-hint { font-size: 0.75rem; color: var(--tx-muted); }
+
+  .status-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+  .status-pending   { background:#fff8e1; color:#8a6200; border:1px solid #ffd54f; }
+  .status-approved  { background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; }
+  .status-active    { background:#e3f2fd; color:#0d47a1; border:1px solid #90caf9; }
+  .status-returned  { background:#f3e5f5; color:#4a148c; border:1px solid #ce93d8; }
+  .status-cancelled { background:#fce4ec; color:#880e4f; border:1px solid #f48fb1; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="thread-wrap">
+
+    <a href="{% url 'inbox' %}" style="font-size:0.85rem; color:var(--tx-muted); text-decoration:none;">← Back to messages</a>
+
+    <!-- Thread header -->
+    <div class="thread-header mt-3">
+      <div>
+        <div class="thread-tool-name">{{ rental.tool.name }}</div>
+        <div class="thread-meta">
+          {% if request.user == rental.renter %}
+            Conversation with {{ rental.tool.owner.get_full_name|default:rental.tool.owner.username }}
+          {% else %}
+            Conversation with {{ rental.renter.get_full_name|default:rental.renter.username }}
+          {% endif %}
+          · {{ rental.start_date|date:"d M" }} → {{ rental.end_date|date:"d M Y" }}
+        </div>
+      </div>
+      <span class="status-badge status-{{ rental.status }}">{{ rental.get_status_display }}</span>
+    </div>
+
+    <!-- Messages -->
+    <div class="messages-list" id="msg-list">
+      {% for msg in thread %}
+      <div class="msg-bubble {% if msg.sender == request.user %}mine{% else %}theirs{% endif %}">
+        <div class="msg-sender">{{ msg.sender.first_name|default:msg.sender.username }}</div>
+        {{ msg.body }}
+        <div class="msg-time">{{ msg.created_at|date:"d M, H:i" }}</div>
+      </div>
+      {% empty %}
+      <div style="text-align:center; color:var(--tx-muted); font-size:0.88rem; padding:2rem 0;">
+        No messages yet. Start the conversation!
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Message input -->
+    <form method="post" id="msg-form">
+      {% csrf_token %}
+      <div class="msg-input-wrap">
+        <textarea
+          name="body"
+          class="msg-input"
+          rows="3"
+          placeholder="Type a message..."
+          id="msg-body"
+          required></textarea>
+        <div class="msg-input-actions">
+          <span class="msg-hint">Press Send or Ctrl+Enter</span>
+          <button type="submit" class="btn btn-tx-primary btn-sm">Send →</button>
+        </div>
+      </div>
+    </form>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // scroll to bottom of messages on load
+  const list = document.getElementById('msg-list');
+  list.scrollTop = list.scrollHeight;
+
+  // Ctrl+Enter to send
+  document.getElementById('msg-body').addEventListener('keydown', function(e) {
+    if (e.ctrlKey && e.key === 'Enter') {
+      document.getElementById('msg-form').submit();
+    }
+  });
+</script>
+{% endblock %}

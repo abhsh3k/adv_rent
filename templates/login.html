@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Login — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap {
+    min-height: calc(100vh - 64px);
+    display: flex;
+    align-items: center;
+    background: var(--tx-black);
+    position: relative;
+    overflow: hidden;
+  }
+  .auth-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 50% 60% at 20% 50%, rgba(232,255,71,0.06) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 60px);
+  }
+  .auth-card {
+    background: var(--tx-white);
+    border-radius: 4px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .auth-brand {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.6rem;
+    letter-spacing: -0.03em;
+    color: var(--tx-black);
+    margin-bottom: 0.3rem;
+  }
+  .auth-brand span { color: #1a1a1a; }
+  .auth-eyebrow {
+    font-size: 0.75rem;
+    color: var(--tx-muted);
+    margin-bottom: 2rem;
+  }
+  .auth-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--tx-muted);
+    margin-bottom: 0.35rem;
+    display: block;
+  }
+  .auth-input {
+    width: 100%;
+    border: 1.5px solid var(--tx-border);
+    border-radius: 2px;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.9rem;
+    color: var(--tx-black);
+    background: var(--tx-white);
+    transition: border-color 0.2s;
+    font-family: var(--font-body);
+  }
+  .auth-input:focus { outline: none; border-color: var(--tx-black); box-shadow: none; }
+  .auth-input.is-invalid { border-color: #d9534f; }
+  .field-error { font-size: 0.78rem; color: #d9534f; margin-top: 0.3rem; }
+  .auth-divider {
+    text-align: center;
+    position: relative;
+    margin: 1.5rem 0;
+    color: var(--tx-muted);
+    font-size: 0.8rem;
+  }
+  .auth-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 1px;
+    background: var(--tx-border);
+  }
+  .auth-divider span { background: var(--tx-white); padding: 0 0.75rem; position: relative; }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="container">
+    <div class="auth-card">
+      <div class="auth-brand">Tool<span style="color:var(--tx-accent)">X</span></div>
+      <div class="auth-eyebrow">Welcome back — sign in to continue</div>
+
+      {% if form.non_field_errors %}
+      <div class="alert alert-danger tx-alert mb-3" style="font-size:0.85rem;">
+        {{ form.non_field_errors }}
+      </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+          <label class="auth-label" for="id_username">Username</label>
+          <input type="text" name="username" id="id_username" class="auth-input {% if form.username.errors %}is-invalid{% endif %}"
+            placeholder="your_username" value="{{ form.username.value|default:'' }}" autofocus>
+          {% if form.username.errors %}<div class="field-error">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+       <div class="mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-1">
+    <label class="auth-label mb-0" for="id_password">Password</label>
+  </div>
+
+  <div style="position: relative;">
+    <input type="password" name="password" id="id_password" 
+           class="auth-input {% if form.password.errors %}is-invalid{% endif %}"
+           placeholder="••••••••" 
+           style="width: 100%; padding-right: 50px;"> <button type="button" id="togglePassword" 
+            style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); border: none; background: none; cursor: pointer; color: #666; font-weight: 500;">
+      Show
+    </button>
+  </div>
+
+  {% if form.password.errors %}
+    <div class="field-error">{{ form.password.errors.0 }}</div>
+  {% endif %}
+</div>
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+        <button type="submit" class="btn btn-tx-primary w-100">Sign in →</button>
+      </form>
+      <div class="text-end mt-1">
+  <a href="{% url 'forgot_password' %}" style="font-size:0.78rem; color:var(--tx-muted);">
+    Forgot password?
+  </a>
+</div>
+
+      <div class="auth-divider"><span>new to ToolX?</span></div>
+
+      <a href="{% url 'register' %}" class="btn btn-tx-outline w-100">Create a free account</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const togglePassword = document.querySelector('#togglePassword');
+const password = document.querySelector('#id_password');
+
+togglePassword.addEventListener('click', function (e) {
+    // Toggle the type attribute
+    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+    password.setAttribute('type', type);
+    
+    // Toggle the button text
+    this.textContent = type === 'password' ? 'Show' : 'Hide';
+});
+</script>
+{% endblock %}

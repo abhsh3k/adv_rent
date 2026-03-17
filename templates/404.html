@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+{% block title %}Page Not Found — ToolX{% endblock %}
+
+{% block content %}
+<div class="container text-center py-5" style="min-height:60vh; display:flex; flex-direction:column; align-items:center; justify-content:center;">
+  <div style="font-size:6rem; line-height:1; font-family:var(--font-display); font-weight:800; color:var(--tx-border);">404</div>
+  <h1 style="font-family:var(--font-display); font-size:1.8rem; margin:1rem 0 0.5rem;">Page not found</h1>
+  <p style="color:var(--tx-muted); max-width:380px;">The page you're looking for doesn't exist or has been moved.</p>
+  <div class="d-flex gap-3 mt-3">
+    <a href="{% url 'home' %}" class="btn btn-tx-primary">Go home</a>
+    <a href="{% url 'tool_list' %}" class="btn btn-tx-outline">Browse tools</a>
+  </div>
+</div>
+{% endblock %}

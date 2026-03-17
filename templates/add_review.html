@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block title %}Leave a Review — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .star-rating { display:flex; flex-direction:row-reverse; gap:0.25rem; justify-content:flex-end; }
+  .star-rating input { display:none; }
+  .star-rating label {
+    font-size:2rem;
+    color:#ddd;
+    cursor:pointer;
+    transition:color 0.15s;
+  }
+  .star-rating input:checked ~ label,
+  .star-rating label:hover,
+  .star-rating label:hover ~ label { color:#f0b429; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:560px;">
+
+  <a href="{% url 'dashboard' %}" style="font-size:0.85rem; color:var(--tx-muted); text-decoration:none;">← Back to dashboard</a>
+
+  <h1 style="font-family:var(--font-display); font-size:1.8rem; margin:1rem 0 0.25rem;">Leave a review</h1>
+  <p style="color:var(--tx-muted); font-size:0.9rem; margin-bottom:2rem;">
+    You rented <strong>{{ rental.tool.name }}</strong> from
+    <strong>{{ rental.tool.owner.get_full_name|default:rental.tool.owner.username }}</strong>
+  </p>
+
+  <!-- Tool summary card -->
+  <div style="display:flex; gap:1rem; align-items:center; padding:1rem; background:var(--tx-card); border:1.5px solid var(--tx-border); border-radius:4px; margin-bottom:2rem;">
+    <div style="width:56px; height:56px; background:#f0ede8; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; flex-shrink:0; overflow:hidden;">
+      {% if rental.tool.image %}
+        <img src="{{ rental.tool.image.url }}" style="width:100%;height:100%;object-fit:cover;">
+      {% else %}
+        🔧
+      {% endif %}
+    </div>
+    <div>
+      <div style="font-family:var(--font-display); font-weight:600;">{{ rental.tool.name }}</div>
+      <div style="font-size:0.8rem; color:var(--tx-muted);">
+        {{ rental.start_date|date:"d M" }} → {{ rental.end_date|date:"d M Y" }} · ₹{{ rental.total_cost }} total
+      </div>
+    </div>
+  </div>
+
+  <form method="post">
+    {% csrf_token %}
+
+    <!-- Star rating -->
+    <div class="mb-4">
+      <label class="auth-label">Your rating</label>
+      <div class="star-rating">
+        <input type="radio" name="rating" id="s5" value="5" required>
+        <label for="s5">★</label>
+        <input type="radio" name="rating" id="s4" value="4">
+        <label for="s4">★</label>
+        <input type="radio" name="rating" id="s3" value="3">
+        <label for="s3">★</label>
+        <input type="radio" name="rating" id="s2" value="2">
+        <label for="s2">★</label>
+        <input type="radio" name="rating" id="s1" value="1">
+        <label for="s1">★</label>
+      </div>
+    </div>
+
+    <!-- Comment -->
+    <div class="mb-4">
+      <label class="auth-label" for="comment">Your experience</label>
+      <textarea
+        name="comment"
+        id="comment"
+        class="auth-input"
+        rows="4"
+        placeholder="Was the tool in good condition? Was the owner responsive?"></textarea>
+    </div>
+
+    <button type="submit" class="btn btn-tx-accent w-100">Submit review →</button>
+    <a href="{% url 'dashboard' %}" class="btn btn-tx-outline w-100 mt-2">Skip for now</a>
+  </form>
+
+</div>
+{% endblock %}

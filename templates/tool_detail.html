@@ -1,0 +1,324 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ tool.name }} — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .detail-img-wrap {
+    background: #f0ede8;
+    border-radius: 4px;
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .detail-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .detail-img-wrap .no-img { font-size: 5rem; }
+
+  .detail-card {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    padding: 1.75rem;
+    position: sticky;
+    top: 80px;
+  }
+  .detail-card .price-big {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.03em;
+  }
+  .detail-card .price-big span {
+    font-size: 0.9rem;
+    font-weight: 400;
+    color: var(--tx-muted);
+  }
+
+  .owner-block {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 1rem;
+    background: #f7f5f0;
+    border-radius: 4px;
+    margin: 1.25rem 0;
+  }
+  .owner-avatar {
+    width: 42px;
+    height: 42px;
+    background: var(--tx-black);
+    color: var(--tx-accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .owner-name { font-family: var(--font-display); font-weight: 600; font-size: 0.9rem; }
+  .owner-label { font-size: 0.75rem; color: var(--tx-muted); }
+
+  .info-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--tx-border);
+    font-size: 0.88rem;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-row .label { color: var(--tx-muted); min-width: 110px; }
+  .info-row .value { font-weight: 500; }
+
+  .date-input {
+    border: 1.5px solid var(--tx-border);
+    border-radius: 2px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.88rem;
+    width: 100%;
+    color: var(--tx-black);
+    background: var(--tx-white);
+    transition: border-color 0.2s;
+  }
+  .date-input:focus { outline: none; border-color: var(--tx-black); }
+
+  label.form-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--tx-muted);
+    margin-bottom: 0.35rem;
+  }
+
+  .total-calc {
+    background: var(--tx-accent);
+    border-radius: 2px;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin: 1rem 0;
+  }
+
+  .review-item {
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--tx-border);
+  }
+  .review-item:last-child { border-bottom: none; }
+  .star { color: #f0b429; font-size: 0.85rem; }
+  .reviewer-name { font-weight: 600; font-size: 0.88rem; }
+  .review-date { font-size: 0.75rem; color: var(--tx-muted); }
+  .review-text { font-size: 0.88rem; color: var(--tx-black); margin-top: 0.3rem; }
+
+  .breadcrumb-item + .breadcrumb-item::before { color: var(--tx-muted); }
+  .breadcrumb-item a { color: var(--tx-muted); text-decoration: none; font-size: 0.83rem; }
+  .breadcrumb-item.active { color: var(--tx-black); font-size: 0.83rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+
+  <!-- Breadcrumb -->
+  <nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{% url 'tool_list' %}">Tools</a></li>
+      <li class="breadcrumb-item active">{{ tool.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row g-5">
+
+    <!-- Left: image + details -->
+    <div class="col-lg-7">
+      <div class="detail-img-wrap mb-4">
+        {% if tool.image %}
+          <img src="{{ tool.image.url }}" alt="{{ tool.name }}">
+        {% else %}
+          <div class="no-img">🔧</div>
+        {% endif %}
+      </div>
+
+      <div class="d-flex justify-content-between align-items-start mb-2">
+        <div>
+          <div class="section-label">{{ tool.get_category_display }}</div>
+          <h1 style="font-size:clamp(1.6rem,3vw,2.2rem); letter-spacing:-0.03em; margin-bottom:0;">{{ tool.name }}</h1>
+        </div>
+        {% if tool.is_available %}
+          <span class="badge-avail" style="font-size:0.8rem; padding:0.35rem 0.8rem;">Available</span>
+        {% else %}
+          <span class="badge-rented" style="font-size:0.8rem; padding:0.35rem 0.8rem;">Currently rented</span>
+        {% endif %}
+      </div>
+
+      <p style="color:var(--tx-muted); font-size:0.95rem; margin-bottom:1.5rem;">{{ tool.description|default:"No description provided." }}</p>
+
+      <!-- Tool info -->
+      <div style="background:var(--tx-card); border:1.5px solid var(--tx-border); border-radius:4px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
+        <div class="info-row">
+          <span class="label">Condition</span>
+          <span class="value">{{ tool.get_condition_display|default:"Good" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Category</span>
+          <span class="value">{{ tool.get_category_display }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Daily rate</span>
+          <span class="value">₹{{ tool.daily_rate }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Location</span>
+          <span class="value">{{ tool.location|default:"On campus" }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Listed on</span>
+          <span class="value">{{ tool.created_at|date:"d M Y" }}</span>
+        </div>
+      </div>
+
+      <!-- Reviews -->
+      <div>
+        <h5 style="font-family:var(--font-display); font-size:1rem; margin-bottom:1rem;">
+          Reviews
+          {% if tool.reviews.count %}<span style="color:var(--tx-muted); font-size:0.85rem; font-weight:400;">({{ tool.reviews.count }})</span>{% endif %}
+        </h5>
+        {% for review in tool.reviews.all %}
+        <div class="review-item">
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="reviewer-name">{{ review.reviewer.get_full_name|default:review.reviewer.username }}</span>
+            <span class="review-date">{{ review.created_at|date:"d M Y" }}</span>
+          </div>
+          <div class="star mb-1">
+            {% for i in "12345" %}{% if forloop.counter <= review.rating %}★{% else %}☆{% endif %}{% endfor %}
+          </div>
+          <div class="review-text">{{ review.comment }}</div>
+        </div>
+        {% empty %}
+        <p style="color:var(--tx-muted); font-size:0.88rem;">No reviews yet. Be the first to rent this tool!</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right: rental card -->
+    <div class="col-lg-5">
+      <div class="detail-card">
+
+        <div class="price-big mb-1">₹{{ tool.daily_rate }} <span>/ day</span></div>
+
+        <!-- Owner -->
+        <div class="owner-block">
+          <div class="owner-avatar">{{ tool.owner.first_name|first|upper|default:"?" }}</div>
+          <div>
+            <div class="owner-name">{{ tool.owner.get_full_name|default:tool.owner.username }}</div>
+            <div class="owner-label">Tool owner</div>
+          </div>
+        </div>
+
+        {% if has_rented_before %}
+  <a href="{% url 'rental_thread' rental_id %}" class="btn btn-tx-outline w-100 mb-3">
+    💬 Message owner
+  </a>
+{% endif %}
+
+        {% if tool.is_available %}
+          {% if user.is_authenticated %}
+            {% if user != tool.owner %}
+            <form method="post" action="{% url 'rent_tool' tool.pk %}" id="rental-form">
+              {% csrf_token %}
+              
+              <div class="mb-3">
+                <label class="form-label">Start date</label>
+                <input type="date" name="start_date" class="date-input" id="start_date" required
+                  min="{{ today|date:'Y-m-d' }}" value="{{ today|date:'Y-m-d' }}">
+              </div>
+              <div class="mb-3">
+                <label class="form-label">End date</label>
+                <input type="date" name="end_date" class="date-input" id="end_date" required
+                  min="{{ today|date:'Y-m-d' }}">
+              </div>
+              <div class="total-calc">
+                <span>Estimated total</span>
+                <span id="total-display">₹—</span>
+              </div>
+              <div class="mb-3">
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" name="terms_accepted" id="terms" required>
+    <label class="form-check-label" for="terms" style="font-size:0.82rem;">
+      I agree to return the tool in the same condition and accept responsibility for any damage.
+    </label>
+  </div>
+</div>
+              <div class="mb-3">
+                <label class="form-label">Message to owner <span style="font-size:0.7rem; text-transform:none; font-weight:400;">(optional)</span></label>
+                <textarea name="message" class="date-input" rows="3" placeholder="Introduce yourself, explain your use case..."></textarea>
+              </div>
+              <button type="submit" class="btn btn-tx-accent w-100">Request to Rent</button>
+              <p style="font-size:0.75rem; color:var(--tx-muted); text-align:center; margin-top:0.75rem;">The owner will review your request before it's confirmed.</p>
+            </form>
+            {% else %}
+            <div class="text-center py-3" style="border:1.5px solid var(--tx-border); border-radius:4px; color:var(--tx-muted); font-size:0.88rem;">
+              This is your own tool listing.
+              <br><a href="{% url 'dashboard' %}" style="color:var(--tx-black); font-weight:600;">Manage from dashboard →</a>
+            </div>
+            {% endif %}
+          {% else %}
+          <div class="text-center py-3" style="border:1.5px solid var(--tx-border); border-radius:4px;">
+            <p style="font-size:0.88rem; color:var(--tx-muted); margin-bottom:0.75rem;">Sign in to request this tool</p>
+            <a href="{% url 'login' %}?next={{ request.path }}" class="btn btn-tx-primary w-100">Login to rent</a>
+            <p style="font-size:0.78rem; color:var(--tx-muted); margin-top:0.6rem;">No account? <a href="{% url 'register' %}" style="color:var(--tx-black);">Register free</a></p>
+          </div>
+          {% endif %}
+        {% else %}
+        <div class="text-center py-3" style="border:1.5px solid var(--tx-border); border-radius:4px; color:var(--tx-muted);">
+          <div style="font-size:1.5rem; margin-bottom:0.5rem;">⏳</div>
+          <p style="font-size:0.88rem; margin:0;">This tool is currently rented out.<br>Check back later.</p>
+        </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  
+  const ratePerDay = {{ tool.daily_rate }};
+  const startInput = document.getElementById('start_date');
+  const endInput = document.getElementById('end_date');
+  const totalDisplay = document.getElementById('total-display');
+
+  function calcTotal() {
+  if (!startInput.value || !endInput.value) return;
+  const s = new Date(startInput.value);
+  const e = new Date(endInput.value);
+  
+  if (e >= s) {
+    const diffTime = Math.abs(e - s);
+    // Add 1 to include the starting day, or stay at 0 if you prefer
+    const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1; 
+    totalDisplay.textContent = '₹' + (days * ratePerDay);
+  } else {
+    totalDisplay.textContent = '₹—';
+  }
+}
+
+  if (startInput) startInput.addEventListener('change', () => { endInput.min = startInput.value; calcTotal(); });
+  if (endInput) endInput.addEventListener('change', calcTotal);
+</script>
+{% endblock %}

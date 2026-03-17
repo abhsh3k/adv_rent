@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if tool %}Edit{% else %}Add{% endif %} Tool — ToolX{% endblock %}
+
+{% block content %}
+<div class="container py-5" style="max-width:640px;">
+  <h1 style="font-family:var(--font-display); font-size:1.8rem; margin-bottom:2rem;">
+    {% if tool %}Edit tool{% else %}List a tool{% endif %}
+  </h1>
+
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="mb-3">
+      <label class="auth-label">Tool name</label>
+      <input type="text" name="name" class="auth-input" required value="{{ tool.name|default:'' }}">
+    </div>
+    <div class="mb-3">
+      <label class="auth-label">Category</label>
+      <select name="category" class="auth-input">
+        {% for val, label in categories %}
+        <option value="{{ val }}" {% if tool.category == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="auth-label">Condition</label>
+      <select name="condition" class="auth-input">
+        {% for val, label in conditions %}
+        <option value="{{ val }}" {% if tool.condition == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mb-3">
+      <label class="auth-label">Daily rate (₹)</label>
+      <input type="number" name="daily_rate" class="auth-input" required min="1"
+        value="{{ tool.daily_rate|default:'' }}">
+    </div>
+    <div class="mb-3">
+  <label class="auth-label">Location on map</label>
+  <div class="d-flex gap-2 align-items-center mb-2">
+    <button type="button" class="btn btn-tx-outline btn-sm" onclick="getLocation()">
+      📍 Use my current location
+    </button>
+    <span id="loc-status" style="font-size:0.8rem; color:var(--tx-muted);"></span>
+  </div>
+  <input type="hidden" name="latitude"  id="latitude"  value="{{ tool.latitude|default:'' }}">
+  <input type="hidden" name="longitude" id="longitude" value="{{ tool.longitude|default:'' }}">
+  <input type="text"   name="location"  class="auth-input"
+    placeholder="Area name e.g. Koramangala, Bangalore"
+    value="{{ tool.location|default:'' }}">
+</div>
+
+
+    <div class="mb-3">
+      <label class="auth-label">Description</label>
+      <textarea name="description" class="auth-input" rows="4">{{ tool.description|default:'' }}</textarea>
+    </div>
+    <div class="mb-4">
+      <label class="auth-label">Photo</label>
+      <input type="file" name="image" class="auth-input" accept="image/*">
+    </div>
+    <button type="submit" class="btn btn-tx-accent w-100">
+      {% if tool %}Save changes{% else %}List tool →{% endif %}
+    </button>
+  </form>
+</div>
+
+
+<script>
+function getLocation() {
+  const status = document.getElementById('loc-status');
+  status.textContent = 'Detecting...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      document.getElementById('latitude').value  = pos.coords.latitude;
+      document.getElementById('longitude').value = pos.coords.longitude;
+      status.textContent = '✓ Location captured';
+      status.style.color = '#1a7a3c';
+    },
+    err => {
+      status.textContent = 'Could not get location';
+      status.style.color = '#d9534f';
+    }
+  );
+}
+</script>
+{% endblock %}

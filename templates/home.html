@@ -1,0 +1,374 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}ToolX — Rent & Share Tools on Campus{% endblock %}
+{% block nav_home %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  /* ── Hero ── */
+  .hero {
+    background: var(--tx-black);
+    min-height: 88vh;
+    display: flex;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 70% at 80% 50%, rgba(232,255,71,0.07) 0%, transparent 70%),
+      repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 60px),
+      repeating-linear-gradient(0deg, rgba(255,255,255,0.02) 0px, rgba(255,255,255,0.02) 1px, transparent 1px, transparent 60px);
+  }
+  .hero-eyebrow {
+    display: inline-block;
+    background: var(--tx-accent);
+    color: var(--tx-black);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 2px;
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 {
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.0;
+    letter-spacing: -0.04em;
+    color: var(--tx-white);
+    margin-bottom: 1.5rem;
+  }
+  .hero h1 .accent { color: var(--tx-accent); }
+  .hero p {
+    color: rgba(245,243,238,0.6);
+    font-size: 1.05rem;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 2.5rem;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .hero-stat-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--tx-white);
+    display: block;
+    line-height: 1;
+  }
+  .hero-stat-label {
+    font-size: 0.78rem;
+    color: rgba(245,243,238,0.45);
+    margin-top: 0.25rem;
+  }
+  .hero-image-block {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .hero-tool-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 1.2rem;
+    backdrop-filter: blur(10px);
+    width: 220px;
+  }
+  .hero-tool-card .tool-icon {
+    width: 50px;
+    height: 50px;
+    background: var(--tx-accent);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 0.75rem;
+  }
+  .hero-tool-card .name {
+    font-family: var(--font-display);
+    font-weight: 600;
+    color: var(--tx-white);
+    font-size: 0.9rem;
+  }
+  .hero-tool-card .price {
+    color: var(--tx-accent);
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-top: 0.2rem;
+  }
+  .hero-float-1 { position: absolute; top: 10%; right: 5%; animation: floatY 3s ease-in-out infinite; }
+  .hero-float-2 { position: absolute; bottom: 15%; left: 5%; animation: floatY 3.5s ease-in-out infinite 0.5s; }
+  .hero-float-3 { position: absolute; top: 50%; right: -2%; transform: translateY(-50%); animation: floatY 4s ease-in-out infinite 1s; }
+  @keyframes floatY {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* ── How it works ── */
+  .how-step {
+    display: flex;
+    gap: 1.2rem;
+    align-items: flex-start;
+  }
+  .step-num {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    background: var(--tx-accent);
+    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: var(--tx-black);
+  }
+
+  /* ── Category pills ── */
+  .cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 2px;
+    padding: 0.65rem 1.2rem;
+    text-decoration: none;
+    color: var(--tx-black);
+    font-weight: 500;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+  }
+  .cat-pill:hover {
+    background: var(--tx-black);
+    color: var(--tx-accent);
+    border-color: var(--tx-black);
+  }
+  .cat-pill .icon { font-size: 1.1rem; }
+
+  /* ── CTA band ── */
+  .cta-band {
+    background: var(--tx-accent);
+    padding: 5rem 0;
+  }
+  .cta-band h2 {
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    letter-spacing: -0.03em;
+    color: var(--tx-black);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- ── Hero ── -->
+<section class="hero">
+  <div class="container position-relative" style="z-index:1">
+    <div class="row align-items-center">
+      <div class="col-lg-6 py-5">
+        <span>© 2025 ToolX. Rent & share tools with your community.</span>
+        <h1>
+          Rent tools.<br>
+          Share <span class="accent">smarter.</span><br>
+          Build more.
+        </h1>
+        <p>ToolX connects people who have tools with those who need them — at a fraction of the cost of buying new.</p>
+        <div class="d-flex flex-wrap gap-3">
+          <a href="{% url 'tool_list' %}" class="btn btn-tx-accent btn-lg">Browse Tools</a>
+          <a href="{% url 'register' %}" class="btn btn-lg" style="background:rgba(255,255,255,0.08); color:var(--tx-white); border:1.5px solid rgba(255,255,255,0.2); border-radius:2px;">List Your Tool →</a>
+        </div>
+        <div class="hero-stats">
+          <div>
+            <span class="hero-stat-num">{{ total_tools|default:"120" }}+</span>
+            <div class="hero-stat-label">Tools listed</div>
+          </div>
+          <div>
+            <span class="hero-stat-num">{{ total_users|default:"340" }}+</span>
+            <div class="hero-stat-label">community members</div>
+          </div>
+          <div>
+            <span class="hero-stat-num">{{ total_rentals|default:"800" }}+</span>
+            <div class="hero-stat-label">Successful rentals</div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6 d-none d-lg-flex hero-image-block" style="min-height:500px;">
+        <div class="hero-float-1">
+          <div class="hero-tool-card">
+            <div class="tool-icon">🔧</div>
+            <div class="name">Power Drill</div>
+            <div class="price">₹80 / day</div>
+          </div>
+        </div>
+        <div class="hero-float-2">
+          <div class="hero-tool-card">
+            <div class="tool-icon">📐</div>
+            <div class="name">Drawing Board</div>
+            <div class="price">₹50 / day</div>
+          </div>
+        </div>
+        <div class="hero-float-3">
+          <div class="hero-tool-card">
+            <div class="tool-icon">🔬</div>
+            <div class="name">Lab Microscope</div>
+            <div class="price">₹200 / day</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── Categories ── -->
+<section class="py-5" style="background: var(--tx-white);">
+  <div class="container">
+    <div class="row align-items-end mb-4">
+      <div class="col">
+        <div class="section-label">What's available</div>
+        <div class="section-title">Browse by category</div>
+      </div>
+      <div class="col-auto">
+        <a href="{% url 'tool_list' %}" class="btn btn-tx-outline btn-sm">View all →</a>
+      </div>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+  {% for category in categories %}
+    <a href="{% url 'tool_list' %}?category={{ category.slug }}" class="cat-pill">
+      {% if category.icon %}
+        <span class="icon">{{ category.icon }}</span>
+      {% else %}
+        <span class="icon">🛠️</span>
+      {% endif %}
+      {{ category.name }}
+    </a>
+  {% empty %}
+    <p class="text-muted">No categories found. Add some in the admin!</p>
+  {% endfor %}
+</div>
+  </div>
+</section>
+
+<!-- ── Featured tools ── -->
+<section class="py-5" style="background: #f0ede8;">
+  <div class="container">
+    <div class="row align-items-end mb-4">
+      <div class="col">
+        <div class="section-label">Just listed</div>
+        <div class="section-title">Latest tools</div>
+      </div>
+      <div class="col-auto">
+        <a href="{% url 'tool_list' %}" class="btn btn-tx-outline btn-sm">See all tools →</a>
+      </div>
+    </div>
+    <div class="row g-3">
+      {% for tool in latest_tools %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="tool-card h-100">
+          <div class="card-img-wrap">
+            {% if tool.image %}
+              <img src="{{ tool.image.url }}" alt="{{ tool.name }}">
+            {% else %}
+              <div style="font-size:3rem;">🔧</div>
+            {% endif %}
+          </div>
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-1">
+              <div class="tool-name">{{ tool.name }}</div>
+              {% if tool.is_available %}
+                <span class="badge-avail ms-1">Available</span>
+              {% else %}
+                <span class="badge-rented ms-1">Rented</span>
+              {% endif %}
+            </div>
+            <div class="tool-meta">{{ tool.category }} · {{ tool.owner.get_full_name|default:tool.owner.username }}</div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="tool-price">₹{{ tool.daily_rate }} <span>/ day</span></div>
+              <a href="{% url 'tool_detail' tool.pk %}" class="btn btn-tx-primary btn-sm">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <!-- Placeholder cards when no tools yet -->
+      {% for i in "12345678" %}
+      <div class="col-6 col-md-4 col-lg-3">
+        <div class="tool-card h-100">
+          <div class="card-img-wrap" style="background:#e0ddd8;">
+            <div style="font-size:2.5rem;">🔧</div>
+          </div>
+          <div class="card-body">
+            <div class="tool-name">Sample Tool</div>
+            <div class="tool-meta">Category · Owner name</div>
+            <div class="d-flex justify-content-between align-items-center mt-2">
+              <div class="tool-price">₹XX <span>/ day</span></div>
+              <span class="btn btn-tx-primary btn-sm">View</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section class="py-5 py-lg-6" style="background: var(--tx-white);">
+  <div class="container">
+    <div class="row g-5 align-items-center">
+      <div class="col-lg-5">
+        <div class="section-label">Simple process</div>
+        <div class="section-title mb-3">How ToolX works</div>
+        <p style="color:var(--tx-muted);">Three easy steps to get the tools you need — or earn from the ones you have.</p>
+      </div>
+      <div class="col-lg-7">
+        <div class="d-flex flex-column gap-4">
+          <div class="how-step">
+            <div class="step-num">1</div>
+            <div>
+              <h5 style="font-family:var(--font-display); font-size:1rem; margin-bottom:0.3rem;">Browse & find</h5>
+              <p style="color:var(--tx-muted); font-size:0.9rem; margin:0;">Search tools by name, category, or availability. See who owns them and their daily rate.</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="step-num">2</div>
+            <div>
+              <h5 style="font-family:var(--font-display); font-size:1rem; margin-bottom:0.3rem;">Request a rental</h5>
+              <p style="color:var(--tx-muted); font-size:0.9rem; margin:0;">Send a rental request with your start and end dates. The owner reviews and approves.</p>
+            </div>
+          </div>
+          <div class="how-step">
+            <div class="step-num">3</div>
+            <div>
+              <h5 style="font-family:var(--font-display); font-size:1rem; margin-bottom:0.3rem;">Pick up & return</h5>
+              <p style="color:var(--tx-muted); font-size:0.9rem; margin:0;">Meet, use the tool, return it on time. Leave a review and build community trust.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA Band ── -->
+<section class="cta-band">
+  <div class="container text-center">
+    <div class="section-label" style="color:rgba(0,0,0,0.45);">Own a tool? Put it to work</div>
+    <h2 class="mb-3">Start earning from tools<br>sitting in your room.</h2>
+    <p style="color:rgba(0,0,0,0.6); max-width:460px; margin:0 auto 2rem;">List a tool in under 2 minutes. Set your price, availability, and start earning from your community.</p>
+    <a href="{% url 'register' %}" class="btn btn-tx-primary btn-lg">List a tool for free →</a>
+  </div>
+</section>
+
+{% endblock %}

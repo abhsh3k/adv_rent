@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Register — ToolX{% endblock %}
+
+{% block extra_css %}
+<style>
+  .auth-wrap { min-height:calc(100vh - 64px); display:flex; align-items:center; background:var(--tx-black); padding:3rem 0; position:relative; overflow:hidden; }
+  .auth-card { background:var(--tx-white); border-radius:4px; padding:2.5rem; width:100%; max-width:500px; margin:0 auto; position:relative; z-index:1; }
+  .auth-brand { font-family:var(--font-display); font-weight:800; font-size:1.6rem; letter-spacing:-0.03em; color:var(--tx-black); margin-bottom:0.3rem; }
+  .auth-eyebrow { font-size:0.75rem; color:var(--tx-muted); margin-bottom:2rem; }
+  .auth-label { font-size:0.75rem; font-weight:600; letter-spacing:0.09em; text-transform:uppercase; color:var(--tx-muted); margin-bottom:0.35rem; display:block; }
+  .auth-input { width:100%; border:1.5px solid var(--tx-border); border-radius:2px; padding:0.6rem 0.9rem; font-size:0.9rem; color:var(--tx-black); background:var(--tx-white); transition:border-color 0.2s; font-family:var(--font-body); }
+  .auth-input:focus { outline:none; border-color:var(--tx-black); }
+  .auth-input.is-invalid { border-color:#d9534f; }
+  .field-error { font-size:0.78rem; color:#d9534f; margin-top:0.3rem; }
+  .role-toggle { display:flex; border:1.5px solid var(--tx-border); border-radius:2px; overflow:hidden; margin-bottom:0.5rem; }
+  .role-toggle input[type=radio] { display:none; }
+  .role-toggle label { flex:1; text-align:center; padding:0.55rem; font-size:0.85rem; font-weight:600; font-family:var(--font-display); cursor:pointer; transition:all 0.2s; color:var(--tx-muted); }
+  .role-toggle input[type=radio]:checked + label { background:var(--tx-black); color:var(--tx-accent); }
+  .tab-toggle { display:flex; border:1.5px solid var(--tx-border); border-radius:2px; overflow:hidden; margin-bottom:1rem; }
+  .tab-toggle button { flex:1; padding:0.5rem; font-size:0.85rem; font-weight:600; font-family:var(--font-display); cursor:pointer; border:none; background:transparent; color:var(--tx-muted); transition:all 0.2s; }
+  .tab-toggle button.active { background:var(--tx-black); color:var(--tx-accent); }
+  .auth-divider { text-align:center; position:relative; margin:1.5rem 0; color:var(--tx-muted); font-size:0.8rem; }
+  .auth-divider::before { content:''; position:absolute; top:50%; left:0; right:0; height:1px; background:var(--tx-border); }
+  .auth-divider span { background:var(--tx-white); padding:0 0.75rem; position:relative; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+  <div class="container">
+    <div class="auth-card">
+      <div class="auth-brand">Tool<span style="color:var(--tx-accent)">X</span></div>
+      <div class="auth-eyebrow">Create a free account</div>
+
+      <form method="post">
+        {% csrf_token %}
+
+        <!-- Role -->
+        <div class="mb-4">
+          <label class="auth-label">I want to</label>
+          <div class="role-toggle">
+            <input type="radio" name="role" id="role_renter" value="renter" checked>
+            <label for="role_renter">🔧 Rent tools</label>
+            <input type="radio" name="role" id="role_owner" value="owner">
+            <label for="role_owner">💼 List my tools</label>
+            <input type="radio" name="role" id="role_both" value="both">
+            <label for="role_both">⚡ Both</label>
+          </div>
+        </div>
+
+        <!-- Username -->
+        <div class="mb-3">
+          <label class="auth-label">Username</label>
+          <input type="text" name="username" class="auth-input" required
+            placeholder="username" value="{{ form.username|default:'' }}">
+        </div>
+        <!-- First name -->
+        <div class="mb-3">
+          <label class="auth-label">First name</label>
+          <input type="text" name="username" class="auth-input" required
+            placeholder="first name" value="{{ form.first_name|default:'' }}">
+        </div>
+        <!-- Last name -->
+        <div class="mb-3">
+          <label class="auth-label">Lastname</label>
+          <input type="text" name="username" class="auth-input" required
+            placeholder="Last name" value="{{ form.last_name|default:'' }}">
+        </div>
+
+        <!-- Password -->
+        <div class="mb-3" style="position: relative;">
+  <label class="auth-label">Password</label>
+  <input type="password" name="password1" id="pass1" class="auth-input"
+    placeholder="Minimum 8 characters" required>
+  <span class="toggle-password" onclick="toggleField('pass1', this)" style="position: absolute; right: 15px; top: 38px; cursor: pointer; opacity: 0.6;">Show</span>
+</div>
+
+<div class="mb-4" style="position: relative;">
+  <label class="auth-label">Confirm password</label>
+  <input type="password" name="password2" id="pass2" class="auth-input"
+    placeholder="Repeat password" required>
+  <span class="toggle-password" onclick="toggleField('pass2', this)" style="position: absolute; right: 15px; top: 38px; cursor: pointer; opacity: 0.6;">Show</span>
+</div>
+
+        <!-- Email or Phone toggle -->
+        <div class="mb-3">
+          <label class="auth-label">Verify via</label>
+          <div class="tab-toggle">
+            <button type="button" class="active" id="btn-email" onclick="switchTab('email')">📧 Email</button>
+            <button type="button" id="btn-phone" onclick="switchTab('phone')">📱 Phone</button>
+          </div>
+
+          <div id="field-email">
+            <input type="email" name="email" class="auth-input"
+              placeholder="you@example.com" value="{{ form.email|default:'' }}">
+          </div>
+
+          <div id="field-phone" style="display:none;">
+            <div class="d-flex gap-2">
+                <select name="country_code" class="auth-input" style="width: 100px; flex-shrink: 0; background-color: #fff;">
+                    <option value="+91" selected>🇮🇳 +91</option>
+                    <option value="+1">🇺🇸 +1</option>
+                    <option value="+44">🇬🇧 +44</option>
+                    <option value="+971">🇦🇪 +971</option>
+                    <option value="+61">🇦🇺 +61</option>
+                    </select>
+                  
+                <input type="text" name="phone" class="auth-input" 
+                       placeholder="9999999999" value="{{ form.phone|default:'' }}" 
+                       inputmode="numeric" style="flex: 1;">
+            </div>
+            
+            <div style="font-size:0.75rem; color:var(--tx-muted); margin-top:0.4rem;">
+                Select country code and enter your 10-digit mobile number.
+            </div>
+        </div>
+        </div>
+
+        <button type="submit" class="btn btn-tx-accent w-100 mt-2">
+          Create account →
+        </button>
+        <p style="font-size:0.72rem; color:var(--tx-muted); text-align:center; margin-top:0.75rem;">
+          A verification code will be sent to confirm your account.
+        </p>
+      </form>
+
+      <div class="auth-divider"><span>already have an account?</span></div>
+      <a href="{% url 'login' %}" class="btn btn-tx-outline w-100">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+
+function toggleField(inputId, toggleText) {
+  const input = document.getElementById(inputId);
+  
+  if (input.type === "password") {
+    input.type = "text";
+    toggleText.textContent = "Hide";
+  } else {
+    input.type = "password";
+    toggleText.textContent = "Show";
+  }
+}
+
+function switchTab(tab) {
+  document.getElementById('field-email').style.display = tab === 'email' ? 'block' : 'none';
+  document.getElementById('field-phone').style.display = tab === 'phone' ? 'block' : 'none';
+  document.getElementById('btn-email').classList.toggle('active', tab === 'email');
+  document.getElementById('btn-phone').classList.toggle('active', tab === 'phone');
+}
+</script>
+{% endblock %}

@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Dashboard — ToolX{% endblock %}
+{% block nav_dash %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+  .dash-header {
+    background: var(--tx-black);
+    padding: 2.5rem 0;
+    border-bottom: 2px solid var(--tx-accent);
+  }
+  .dash-header h1 {
+    color: var(--tx-white);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .dash-header .sub {
+    color: rgba(245,243,238,0.5);
+    font-size: 0.88rem;
+    margin-top: 0.3rem;
+  }
+
+  /* Tabs */
+  .dash-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1.5px solid var(--tx-border);
+    margin-bottom: 2rem;
+  }
+  .dash-tab {
+    padding: 0.85rem 1.4rem;
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--tx-muted);
+    cursor: pointer;
+    border-bottom: 2.5px solid transparent;
+    margin-bottom: -1.5px;
+    text-decoration: none;
+    transition: all 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+  }
+  .dash-tab:hover { color: var(--tx-black); }
+  .dash-tab.active { color: var(--tx-black); border-bottom-color: var(--tx-black); }
+
+  /* Stat cards */
+  .stat-card {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    padding: 1.25rem 1.5rem;
+  }
+  .stat-num {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 2rem;
+    letter-spacing: -0.04em;
+    line-height: 1;
+  }
+  .stat-label { font-size: 0.8rem; color: var(--tx-muted); margin-top: 0.25rem; }
+  .stat-card.accent { background: var(--tx-accent); border-color: var(--tx-accent); }
+
+  /* Rental table */
+  .rental-table { width: 100%; border-collapse: collapse; }
+  .rental-table th {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--tx-muted);
+    padding: 0.6rem 1rem;
+    border-bottom: 1.5px solid var(--tx-border);
+    text-align: left;
+  }
+  .rental-table td {
+    padding: 0.85rem 1rem;
+    font-size: 0.88rem;
+    border-bottom: 1px solid var(--tx-border);
+    vertical-align: middle;
+  }
+  .rental-table tr:last-child td { border-bottom: none; }
+  .rental-table tr:hover td { background: #fafaf8; }
+  .table-wrap {
+    background: var(--tx-card);
+    border: 1.5px solid var(--tx-border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 0.2rem 0.6rem;
+    border-radius: 2px;
+  }
+  .status-pending   { background:#fff8e1; color:#8a6200; border:1px solid #ffd54f; }
+  .status-approved  { background:#e8f5e9; color:#1b5e20; border:1px solid #a5d6a7; }
+  .status-active    { background:#e3f2fd; color:#0d47a1; border:1px solid #90caf9; }
+  .status-returned  { background:#f3e5f5; color:#4a148c; border:1px solid #ce93d8; }
+  .status-cancelled { background:#fce4ec; color:#880e4f; border:1px solid #f48fb1; }
+
+  /* My tools section */
+  .tool-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--tx-border);
+  }
+  .tool-row:last-child { border-bottom: none; }
+  .tool-row-thumb {
+    width: 52px;
+    height: 52px;
+    border-radius: 4px;
+    background: #f0ede8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+  .tool-row-thumb img { width:100%; height:100%; object-fit:cover; }
+  .tool-row-name { font-family: var(--font-display); font-weight: 600; font-size: 0.92rem; }
+  .tool-row-meta { font-size: 0.78rem; color: var(--tx-muted); }
+
+  /* Add tool modal trigger */
+  .btn-add-tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--tx-accent);
+    color: var(--tx-black);
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 0.5rem 1.1rem;
+    border-radius: 2px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s;
+  }
+  .btn-add-tool:hover { opacity: 0.85; color: var(--tx-black); }
+
+  /* Quick action buttons */
+  .action-btn {
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0.3rem 0.7rem;
+    border-radius: 2px;
+    border: 1.5px solid var(--tx-border);
+    background: transparent;
+    color: var(--tx-black);
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { background: var(--tx-black); color: var(--tx-white); border-color: var(--tx-black); }
+  .action-btn.approve { border-color: #1a7a3c; color: #1a7a3c; }
+  .action-btn.approve:hover { background: #1a7a3c; color: #fff; }
+  .action-btn.decline { border-color: #d9534f; color: #d9534f; }
+  .action-btn.decline:hover { background: #d9534f; color: #fff; }
+
+  .empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: var(--tx-muted);
+  }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 0.75rem; }
+  .empty-state p { font-size: 0.88rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- Dashboard header -->
+<div class="dash-header">
+  <div class="container d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h1>Dashboard</h1>
+      <div class="sub">{{ user.get_full_name|default:user.username }} · {{ user.profile.get_role_display|default:"Member" }}</div>
+    </div>
+    <a href="{% url 'tool_add' %}" class="btn-add-tool">+ List a tool</a>
+  </div>
+</div>
+
+<div class="container py-4">
+
+  <!-- Stats row -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num">{{ my_tools_count|default:"0" }}</div>
+        <div class="stat-label">Tools listed</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num">{{ active_rentals_count|default:"0" }}</div>
+        <div class="stat-label">Active rentals</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num">{{ pending_requests_count|default:"0" }}</div>
+        <div class="stat-label">Pending requests</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card accent">
+        <div class="stat-num">₹{{ total_earned|default:"0" }}</div>
+        <div class="stat-label">Total earned</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="dash-tabs">
+    <button class="dash-tab active" onclick="showTab('rentals-in', this)">Incoming requests</button>
+    <button class="dash-tab" onclick="showTab('rentals-out', this)">My rentals</button>
+    <button class="dash-tab" onclick="showTab('my-tools', this)">My tools</button>
+  </div>
+
+  <!-- Tab: Incoming requests (owner view) -->
+  <div id="tab-rentals-in">
+    <div class="table-wrap">
+      {% if incoming_rentals %}
+      <table class="rental-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Renter</th>
+            <th>Dates</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rental in incoming_rentals %}
+          <tr>
+            <td>
+              <div style="font-weight:600; font-size:0.88rem;">{{ rental.tool.name }}</div>
+            </td>
+            <td>{{ rental.renter.get_full_name|default:rental.renter.username }}</td>
+            <td style="font-size:0.82rem;">
+              {{ rental.start_date|date:"d M" }} → {{ rental.end_date|date:"d M Y" }}
+            </td>
+            <td style="font-weight:600;">₹{{ rental.total_cost }}</td>
+            <td>
+              <span class="status-badge status-{{ rental.status }}">{{ rental.get_status_display }}</span>
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                {% if rental.status == 'pending' %}
+                <form method="post" action="{% url 'rental_action' rental.pk 'approve' %}">
+                  {% csrf_token %}<button class="action-btn approve">Approve</button>
+                </form>
+                <form method="post" action="{% url 'rental_action' rental.pk 'decline' %}">
+                  {% csrf_token %}<button class="action-btn decline">Decline</button>
+                </form>
+                {% elif rental.status == 'active' %}
+                <form method="post" action="{% url 'rental_action' rental.pk 'return' %}">
+                  {% csrf_token %}<button class="action-btn">Mark returned</button>
+                </form>
+                {% else %}
+                <span style="font-size:0.78rem; color:var(--tx-muted);">—</span>
+                {% endif %}
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">📬</div>
+        <p>No rental requests yet.<br>List a tool to start receiving requests.</p>
+        <a href="{% url 'tool_add' %}" class="btn btn-tx-primary btn-sm mt-1">+ List a tool</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tab: My outgoing rentals (renter view) -->
+  <div id="tab-rentals-out" style="display:none;">
+    <div class="table-wrap">
+      {% if my_rentals %}
+      <table class="rental-table">
+        <thead>
+          <tr>
+            <th>Tool</th>
+            <th>Owner</th>
+            <th>Dates</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rental in my_rentals %}
+          <tr>
+            <td>
+              <div style="font-weight:600; font-size:0.88rem;">{{ rental.tool.name }}</div>
+            </td>
+            <td>{{ rental.tool.owner.get_full_name|default:rental.tool.owner.username }}</td>
+            <td style="font-size:0.82rem;">
+              {{ rental.start_date|date:"d M" }} → {{ rental.end_date|date:"d M Y" }}
+            </td>
+            <td style="font-weight:600;">₹{{ rental.total_cost }}</td>
+            <td>
+              <span class="status-badge status-{{ rental.status }}">{{ rental.get_status_display }}</span>
+            </td>
+            <td>
+
+              <a href="{% url 'rental_thread' rental.pk %}" class="action-btn">💬 Chat</a>
+              {% if rental.status == 'returned' and not rental.review %}
+              <a href="{% url 'add_review' rental.pk %}" class="action-btn">Leave review</a>
+              {% elif rental.status == 'pending' %}
+              <form method="post" action="{% url 'rental_action' rental.pk 'cancel' %}">
+                {% csrf_token %}<button class="action-btn decline">Cancel</button>
+              </form>
+              {% else %}
+              <a href="{% url 'tool_detail' rental.tool.pk %}" class="action-btn">View tool</a>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">🔍</div>
+        <p>You haven't rented any tools yet.</p>
+        <a href="{% url 'tool_list' %}" class="btn btn-tx-primary btn-sm mt-1">Browse tools →</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Tab: My listed tools -->
+  <div id="tab-my-tools" style="display:none;">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <span style="font-size:0.85rem; color:var(--tx-muted);">{{ my_tools.count|default:"0" }} tools listed</span>
+      <a href="{% url 'tool_add' %}" class="btn-add-tool">+ Add tool</a>
+    </div>
+
+    <div class="table-wrap">
+      {% if my_tools %}
+      {% for tool in my_tools %}
+      <div class="tool-row">
+        <div class="tool-row-thumb">
+          {% if tool.image %}<img src="{{ tool.image.url }}" alt="{{ tool.name }}">{% else %}🔧{% endif %}
+        </div>
+        <div class="flex-grow-1">
+          <div class="tool-row-name">{{ tool.name }}</div>
+          <div class="tool-row-meta">{{ tool.get_category_display }} · ₹{{ tool.daily_rate }}/day</div>
+        </div>
+        <div>
+          {% if tool.is_available %}
+            <span class="badge-avail">Available</span>
+          {% else %}
+            <span class="badge-rented">Rented</span>
+          {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'tool_edit' tool.pk %}" class="action-btn">Edit</a>
+          <a href="{% url 'tool_detail' tool.pk %}" class="action-btn">View</a>
+          <form method="post" action="{% url 'tool_delete' tool.pk %}" onsubmit="return confirm('Delete this tool?')">
+            {% csrf_token %}<button class="action-btn decline">Delete</button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+      {% else %}
+      <div class="empty-state">
+        <div class="icon">🔧</div>
+        <p>You haven't listed any tools yet.<br>Start earning from tools sitting unused.</p>
+        <a href="{% url 'tool_add' %}" class="btn btn-tx-primary btn-sm mt-1">+ List your first tool</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(id, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('tab-' + id).style.display = 'block';
+  document.querySelectorAll('.dash-tab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+{% endblock %}
