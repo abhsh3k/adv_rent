@@ -221,7 +221,13 @@
 
         <!-- Owner -->
         <div class="owner-block">
-          <div class="owner-avatar">{{ tool.owner.first_name|first|upper|default:"?" }}</div>
+          {% if user.avatar %}
+        <img src="{{ user.avatar.url }}" style="width:56px; height:56px; border-radius:50%; object-fit:cover;">
+        {% else %}
+        <div style="width:56px; height:56px; background:var(--tx-black); color:var(--tx-accent); border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:var(--font-display); font-weight:800; font-size:1.4rem;">
+            {{ user.first_name|first|upper|default:user.username|first|upper }}
+        </div>
+        {% endif %}
           <div>
             <div class="owner-name">{{ tool.owner.get_full_name|default:tool.owner.username }}</div>
             <div class="owner-label">Tool owner</div>

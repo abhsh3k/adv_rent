@@ -9,21 +9,30 @@ from django.contrib.admin.views.decorators import staff_member_required
 
 User = get_user_model()
 
-
 def register(request):
     if request.method == 'POST':
-        username  = request.POST.get('username')
-        password1 = request.POST.get('password1')
-        password2 = request.POST.get('password2')
-        email     = request.POST.get('email', '').strip()
-        country_code = request.POST.get('country_code').strip()
-        phone_number = request.POST.get('phone').strip()
-        phone     = f"{country_code}{phone_number}"
-        role      = request.POST.get('role', 'renter')
+        username     = request.POST.get('username', '').strip()
+        first_name   = request.POST.get('first_name', '').strip()
+        last_name    = request.POST.get('last_name', '').strip()
+        password1    = request.POST.get('password1', '')
+        password2    = request.POST.get('password2', '')
+        email        = request.POST.get('email', '').strip()
+        country_code = request.POST.get('country_code', '').strip()
+        phone_number = request.POST.get('phone', '').strip()
+        phone        = f"{country_code}{phone_number}" if phone_number else ''
+        role         = request.POST.get('role', 'renter')
 
-        # validations
+        # ── Validations ──────────────────────────────────────────────
+        if not username:
+            messages.error(request, 'Username is required.')
+            return render(request, 'register.html', {'form': request.POST})
+
         if password1 != password2:
             messages.error(request, 'Passwords do not match.')
+            return render(request, 'register.html', {'form': request.POST})
+
+        if len(password1) < 8:
+            messages.error(request, 'Password must be at least 8 characters.')
             return render(request, 'register.html', {'form': request.POST})
 
         if not email and not phone:
@@ -42,32 +51,35 @@ def register(request):
             messages.error(request, 'Phone number already registered.')
             return render(request, 'register.html', {'form': request.POST})
 
-        # create inactive user
+        # ── Create inactive user ──────────────────────────────────────
         user = User.objects.create_user(
-            username=username,
-            password=password1,
-            email=email,
-            phone=phone,
-            role=role,
-            is_active=False,  # inactive until OTP verified
+            username   = username,
+            password   = password1,
+            first_name = first_name,
+            last_name  = last_name,
+            email      = email,
+            phone      = phone or None,   # store None instead of empty string
+            role       = role,
+            is_active  = False,           # inactive until OTP verified
         )
 
-        # send OTP
+        # ── Send OTP ──────────────────────────────────────────────────
         if email:
             otp = set_otp(user, 'email')
             send_otp_email(user, otp)
             request.session['otp_user_id'] = user.pk
             request.session['otp_method']  = 'email'
-            messages.info(request, f'A verification code was sent to {email}')
+            messages.info(request, f'A verification code was sent to {email}.')
         else:
             otp = set_otp(user, 'phone')
             send_otp_sms(user, otp)
             request.session['otp_user_id'] = user.pk
             request.session['otp_method']  = 'phone'
-            messages.info(request, f'A verification code was sent to {phone}')
+            messages.info(request, f'A verification code was sent to {phone}.')
 
         return redirect('verify_otp')
 
+    # GET request
     return render(request, 'register.html', {'form': {}})
 
 
@@ -291,7 +303,7 @@ def change_contact(request):
         password     = request.POST.get('password', '')
         if contact_type == 'phone':
             code = request.POST.get('country_code').strip()
-            new_contact = f"{code}{new_value}"
+            new_contact = f"{code}{new_contact}"
 
         # verify current password
         if not request.user.check_password(password):

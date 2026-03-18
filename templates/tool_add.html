@@ -15,13 +15,15 @@
       <input type="text" name="name" class="auth-input" required value="{{ tool.name|default:'' }}">
     </div>
     <div class="mb-3">
-      <label class="auth-label">Category</label>
-      <select name="category" class="auth-input">
-        {% for val, label in categories %}
-        <option value="{{ val }}" {% if tool.category == val %}selected{% endif %}>{{ label }}</option>
-        {% endfor %}
-      </select>
-    </div>
+  <label class="auth-label">Category</label>
+  <select name="category" class="auth-input">
+    {% for cat in categories %}
+    <option value="{{ cat.id }}" {% if tool.category_id == cat.id %}selected{% endif %}>
+      {{ cat.name }}
+    </option>
+    {% endfor %}
+  </select>
+</div>
     <div class="mb-3">
       <label class="auth-label">Condition</label>
       <select name="condition" class="auth-input">
@@ -69,13 +71,34 @@
 <script>
 function getLocation() {
   const status = document.getElementById('loc-status');
+  const locationInput = document.querySelector('input[name="location"]'); // Select the text box
+  
   status.textContent = 'Detecting...';
+  
   navigator.geolocation.getCurrentPosition(
-    pos => {
-      document.getElementById('latitude').value  = pos.coords.latitude;
-      document.getElementById('longitude').value = pos.coords.longitude;
-      status.textContent = '✓ Location captured';
-      status.style.color = '#1a7a3c';
+    async pos => {
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      
+      document.getElementById('latitude').value  = lat;
+      document.getElementById('longitude').value = lon;
+      
+      status.textContent = 'Fetching address...';
+
+      try {
+        // Using Nominatim (OpenStreetMap) to get the area name
+        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const data = await response.json();
+        
+        // Pick the most relevant parts of the address
+        const address = data.address.suburb || data.address.neighbourhood || data.address.city || data.display_name;
+        locationInput.value = address;
+        
+        status.textContent = '✓ Location & Address captured';
+        status.style.color = '#1a7a3c';
+      } catch (error) {
+        status.textContent = '✓ Coordinates saved (Address failed)';
+      }
     },
     err => {
       status.textContent = 'Could not get location';

@@ -19,14 +19,22 @@ def haversine(lat1, lon1, lat2, lon2):
     return R * 2 * math.asin(math.sqrt(a))
 
 
-    
 def home(request):
-    latest_tools = Tool.objects.filter(is_available=True)[:8]
+    # 1. Fetch 3-5 random tools for the Hero section
+    # .order_by('?') is the Django way to randomize on every reload
+    hero_tools = Tool.objects.filter(is_available=True).exclude(image="").order_by('?')[:3]
+    
+    # 2. Fetch the latest 8 tools for the "Just Listed" section
+    latest_tools = Tool.objects.filter(is_available=True).order_by('-created_at')[:8]
+
     return render(request, 'home.html', {
+        'hero_tools': hero_tools,
         'latest_tools': latest_tools,
-        'categories': Category.objects.all(),  # Add this line!
+        'categories': Category.objects.all(),
         'total_tools': Tool.objects.count(),
-        'total_users': User.objects.count()
+        'total_users': User.objects.count(),
+        # Optional: Add a placeholder for total rentals if you have a Rental model
+        'total_rentals': 800 # Or Rental.objects.count()
     })
 
 def tool_list(request):
@@ -99,20 +107,22 @@ def tool_detail(request, pk):
         'has_rented_before': has_rented_before,
         'rental_id': rental_id,
     })
+from .models import Tool, Category  # ensure Category is imported
 
 @login_required
 def tool_add(request):
     if request.method == 'POST':
+        category = get_object_or_404(Category, pk=request.POST.get('category'))
         tool = Tool(
-            owner=request.user,
-            name=request.POST.get('name'),
-            description=request.POST.get('description'),
-            category=request.POST.get('category'),
-            condition=request.POST.get('condition'),
-            daily_rate=request.POST.get('daily_rate'),
-            location=request.POST.get('location'),
-            latitude=request.POST.get('latitude') or None,
-            longitude=request.POST.get('longitude') or None,
+            owner       = request.user,
+            name        = request.POST.get('name'),
+            description = request.POST.get('description'),
+            category    = category,                          # ← pass object, not id string
+            condition   = request.POST.get('condition'),
+            daily_rate  = request.POST.get('daily_rate'),
+            location    = request.POST.get('location'),
+            latitude    = request.POST.get('latitude') or None,
+            longitude   = request.POST.get('longitude') or None,
         )
         if request.FILES.get('image'):
             tool.image = request.FILES['image']
@@ -121,22 +131,24 @@ def tool_add(request):
         return redirect('tool_detail', pk=tool.pk)
 
     return render(request, 'tool_add.html', {
-        'categories': Tool.CATEGORY_CHOICES,
+        'categories': Category.objects.all(),   # ← from DB, not CATEGORY_CHOICES
         'conditions': Tool.CONDITION_CHOICES,
     })
+
 
 @login_required
 def tool_edit(request, pk):
     tool = get_object_or_404(Tool, pk=pk, owner=request.user)
     if request.method == 'POST':
+        category = get_object_or_404(Category, pk=request.POST.get('category'))
         tool.name        = request.POST.get('name')
         tool.description = request.POST.get('description')
-        tool.category    = request.POST.get('category')
+        tool.category    = category                          # ← pass object, not id string
         tool.condition   = request.POST.get('condition')
         tool.daily_rate  = request.POST.get('daily_rate')
         tool.location    = request.POST.get('location')
-        tool.latitude  = request.POST.get('latitude') or None
-        tool.longitude = request.POST.get('longitude') or None
+        tool.latitude    = request.POST.get('latitude') or None
+        tool.longitude   = request.POST.get('longitude') or None
         if request.FILES.get('image'):
             tool.image = request.FILES['image']
         tool.save()
@@ -144,10 +156,11 @@ def tool_edit(request, pk):
         return redirect('tool_detail', pk=tool.pk)
 
     return render(request, 'tool_add.html', {
-        'tool': tool,
-        'categories': Tool.CATEGORY_CHOICES,
+        'tool'      : tool,
+        'categories': Category.objects.all(),   # ← from DB, not CATEGORY_CHOICES
         'conditions': Tool.CONDITION_CHOICES,
     })
+
 
 @login_required
 def tool_delete(request, pk):
